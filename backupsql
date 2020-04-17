@@ -1,0 +1,47 @@
+#!/usr/bin/python3
+import argparse, os, configparser, datetime, sys
+from pathlib import Path
+
+# Create config directory of it does not exist
+homedir = str(Path.home())
+configdir = os.path.join(homedir, '.backupsql')
+if not os.path.exists(configdir):
+    os.makedirs(configdir)
+    print("creating {}".format(configdir))
+
+configfilename = os.path.join(configdir, 'backupsql.ini')
+config = configparser.ConfigParser()
+config.read(configfilename)
+
+try:
+    user = config['dbconfig']['user']
+    password = config['dbconfig']['password']
+except:
+    print('backsql not configured. Please add [dbconfig] user '\
+             'and [dbconfig] password to {}'.format(configfilename))
+    sys.exit(1)
+
+
+
+parser = argparse.ArgumentParser(description="Back mysql database to a file")
+parser.add_argument('database', nargs=1, help="Name of database to backup")
+
+
+args= parser.parse_args()
+database = args.database[0]
+
+t = datetime.datetime.now()
+dbfilename = database+'_'+t.strftime('%Y-%m-%d_%H-%M-%S')+'.sql'
+
+cmd = 'mysqldump -u '+user+' -p'+password+' '
+cmd += database+' > '+dbfilename
+print(cmd)
+print ("backing up {} to {}".format(database, dbfilename))
+os.system(cmd)
+
+
+
+
+# save config file
+#with open(configfilename, 'w') as configfile:
+#    config.write(configfile)
