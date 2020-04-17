@@ -25,17 +25,24 @@ except:
 
 parser = argparse.ArgumentParser(description="Back mysql database to a file")
 parser.add_argument('database', nargs=1, help="Name of database to backup")
+parser.add_argument('-z', action='store_true', default=False, help="Compress the backup file")
 
 
 args= parser.parse_args()
 database = args.database[0]
+compress = args.z
 
 t = datetime.datetime.now()
 dbfilename = database+'_'+t.strftime('%Y-%m-%d_%H-%M-%S')+'.sql'
 
 cmd = 'mysqldump -u '+user+' -p'+password+' '
-cmd += database+' > '+dbfilename
-print(cmd)
+cmd += database
+if compress == False:
+    cmd += ' > '+dbfilename
+else:
+    cmd += ' | gzip -9 -c > '+dbfilename+'.gz'
+
+#print(cmd)
 print ("backing up {} to {}".format(database, dbfilename))
 os.system(cmd)
 
